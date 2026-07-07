@@ -1,0 +1,55 @@
+name: 'promptci'
+description: 'Run promptci regression tests and comment results on the PR'
+inputs:
+  openai-api-key:
+    description: 'OpenAI API key used to run the prompts'
+    required: true
+  promptci-token:
+    description: 'Personal promptci dashboard token (optional). If set, results are uploaded and the comment includes a report link.'
+    required: false
+  dashboard-url:
+    description: 'promptci dashboard URL to upload results to'
+    required: false
+    default: 'https://prompt-ci-dashboard.vercel.app'
+  github-token:
+    description: 'Token used to post the PR comment'
+    required: false
+    default: ${{ github.token }}
+runs:
+  using: 'composite'
+  steps:
+    - uses: actions/setup-node@v4
+      with:
+        node-version: '20'
+    - name: Run promptci
+      id: run
+      shell: bash
+      continue-on-error: true
+      env:
+        OPENAI_API_KEY: ${{ inputs.openai-api-key }}
+        PROMPTCI_TOKEN: ${{ inputs.promptci-token }}
+        PROMPTCI_DASHBOARD_URL: ${{ inputs.dashboard-url }}
+      run: |
+        if [ -n "${{ inputs.promptci-token }}" ]; then
+          npx @kibin28-glitch/promptci run --upload | tee /tmp/promptci-stdout.txt
+        else
+          npx @kibin28-glitch/promptci run | tee /tmp/promptci-stdout.txt
+        fi
+    - name: Comment on PR
+      if: always() && github.event_name == 'pull_request'
+      shell: bash
+      env:
+        GH_TOKEN: ${{ inputs.github-token }}
+      run: |
+        node "${{ github.action_path }}/format-comment.js" tests/results/latest.json /tmp/promptci-stdout.txt > /tmp/promptci-comment.md
+        COMMENT_ID=$(gh pr view "${{ github.event.pull_request.number }}" --json comments \
+          --jq '.comments[] | select(.body | contains("<!-- promptci-action -->")) | .id' | head -n 1)
+        if [ -n "$COMMENT_ID" ]; then
+          gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -F body=@/tmp/promptci-comment.md
+        else
+          gh pr comment "${{ github.event.pull_request.number }}" --body-file /tmp/promptci-comment.md
+        fi
+    - name: Fail if regression found
+      if: always() && steps.run.outcome == 'failure'
+      shell: bash
+      run: exit 1
