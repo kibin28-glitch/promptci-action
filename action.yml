@@ -42,8 +42,11 @@ runs:
         GH_TOKEN: ${{ inputs.github-token }}
       run: |
         node "${{ github.action_path }}/format-comment.js" tests/results/latest.json /tmp/promptci-stdout.txt > /tmp/promptci-comment.md
-        COMMENT_ID=$(gh pr view "${{ github.event.pull_request.number }}" --json comments \
-          --jq '.comments[] | select(.body | contains("<!-- promptci-action -->")) | .id' | head -n 1)
+        # Use the REST "list comments" endpoint (not `gh pr view --json comments`, which
+        # returns GraphQL node IDs) so COMMENT_ID is a numeric REST id compatible with the
+        # PATCH call below. Passing a GraphQL node id ("IC_...") to the REST endpoint 404s.
+        COMMENT_ID=$(gh api "repos/${{ github.repository }}/issues/${{ github.event.pull_request.number }}/comments" \
+          --jq '.[] | select(.body | contains("<!-- promptci-action -->")) | .id' | head -n 1)
         if [ -n "$COMMENT_ID" ]; then
           gh api -X PATCH "repos/${{ github.repository }}/issues/comments/$COMMENT_ID" -F body=@/tmp/promptci-comment.md
         else
