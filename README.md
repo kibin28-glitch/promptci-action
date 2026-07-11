@@ -30,6 +30,10 @@ If a prompt regresses, the job fails (so branch protection can block the merge) 
 ❌ **greeting** — FAILED (0/1 cases)
 ```
 
+## Limitations
+
+Because the workflow trigger is `on: [pull_request]`, GitHub Actions runs pull requests from forks with a read-only `GITHUB_TOKEN` and no access to repository secrets. This means `OPENAI_API_KEY` won't be available and the action can't post or update a PR comment for fork-originated pull requests — this is inherent to GitHub's security model, not a bug in this action.
+
 ## Inputs
 
 | Input | Required | Default | Description |

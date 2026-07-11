@@ -19,7 +19,15 @@ if (!fs.existsSync(latestJsonPath)) {
   process.exit(0);
 }
 
-const results = JSON.parse(fs.readFileSync(latestJsonPath, "utf8"));
+let results;
+try {
+  results = JSON.parse(fs.readFileSync(latestJsonPath, "utf8"));
+} catch (err) {
+  console.log(
+    "⚠️ promptci produced an unreadable `tests/results/latest.json` — check the workflow logs for details.",
+  );
+  process.exit(0);
+}
 
 for (const result of results) {
   const total = result.cases.length;
