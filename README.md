@@ -1,6 +1,10 @@
 # promptci-action
 
-Run [promptci](https://github.com/kibin28-glitch/prompt-ci-engine) regression tests on every pull request, and post the results as a PR comment.
+**Catch LLM prompt regressions before they merge — not after they ship.**
+
+Every PR that touches a prompt runs your saved test cases against the last known-good baseline, right inside GitHub Actions. If the output quality drops, the check goes red and a comment shows exactly which case broke — the same way a unit test would catch a code regression, but for prompts.
+
+Powered by [promptci](https://github.com/kibin28-glitch/prompt-ci-engine).
 
 ## Usage
 

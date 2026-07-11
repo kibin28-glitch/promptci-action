@@ -15,6 +15,9 @@ inputs:
     description: 'Token used to post the PR comment'
     required: false
     default: ${{ github.token }}
+branding:
+  icon: 'check-circle'
+  color: 'green'
 runs:
   using: 'composite'
   steps:
