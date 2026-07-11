@@ -1,4 +1,4 @@
-name: 'promptci'
+name: 'PromptCI Regression Check'
 description: 'Run promptci regression tests and comment results on the PR'
 inputs:
   openai-api-key:
