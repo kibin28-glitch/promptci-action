@@ -6,6 +6,8 @@ Every PR that touches a prompt runs your saved test cases against the last known
 
 Powered by [promptci](https://github.com/kibin28-glitch/prompt-ci-engine).
 
+![promptci catching a regression](docs/assets/demo.svg)
+
 ## Usage
 
 1. Commit your `promptci` baseline (`promptci snapshot` writes it to `.promptci/baseline/`) — a CI runner has no access to your local filesystem, so the baseline must live in the repo.
